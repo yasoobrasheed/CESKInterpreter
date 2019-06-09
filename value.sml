@@ -20,4 +20,9 @@ structure Value = struct
 	  											| _			=> false)
 	  						else false
 
+	fun tos (Void) = "void"
+	  | tos (Cont k) = K.tos k 
+	  | tos (Clos c) = C.tos c
+	  | tos (Exp e)	 = E.tos e
+
 end
