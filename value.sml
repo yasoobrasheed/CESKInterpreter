@@ -1,8 +1,8 @@
 structure Value = struct
 	
-	structure Continuation = K
-	structure Closure = C
-	structure Expression = E
+	structure K = Continuation
+	structure C = Closure
+	structure E = Expression
 
 	datatype value
 		= Void

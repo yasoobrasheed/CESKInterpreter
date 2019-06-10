@@ -1,66 +1,61 @@
 structure Expression = struct
 
-	datatype prim
-		= Add
-		| Minus
-		| Times
-		| Equals
+	structure P = Prim
 
-	datatype aexp
+	datatype exp
 		= Nat of int
 		| True
 		| False
 		| Var of string
-		| Lambda of aexp list * exp
-		| Prim of prim * aexp list
-
-	datatype cexp
-		= Sequence of aexp list
-		| If of aexp * exp * exp
-		| Call of aexp
-		| Set of string * aexp
-    	| Record of (string * aexp) list
-
-	datatype exp
-		= AExp aexp
-		| CExp cexp
-		| Let (aexp * exp) * exp
+		| Lambda of exp list * exp
+		| Pr of P.Prim * exp list
+		| Sequence of exp list
+		| If of exp * exp * exp
+		| Call of exp
+		| Set of string * exp
+		| Record of (string * exp) list
+		| Let of exp * exp * exp
 	
-	fun isAtom (AExp a) = (case a of 
-							(Nat n) => true
-							| (True) => true
-							| (False) => true
-							| (Var s) => true
-							| (Lambda ([], e)) => true
-							| (Lambda ((al::als), e)) => (case al of
-															(Var s) = isAtom (AExp (Lambda (als, e)))
-															| _		= false)
-							| (Prim (p, [])) => true
-							| (Prim (p, (a::als))) => isAtom (AExp a) andalso isAtom (AExp (Prim (p, als))))
+	fun isAtom (Nat n) = true
+	  | isAtom (True) = true
+	  | isAtom (False) = true
+	  | isAtom (Var s) = true
+	  | isAtom (Lambda ([], e)) = true
+	  | isAtom (Lambda ((al::als), e)) = (case al of
+											(Var s) => isAtom (Lambda (als, e))
+											| _		=> false)
+	  | isAtom (Pr (p, [])) = true
+	  | isAtom (Pr (p, (a::als))) = isAtom a andalso isAtom (Pr (p, als))
 	  | isAtom _ = false
+
+	fun isCom (Sequence []) = true
+	  | isCom (Sequence (a::als)) = isAtom a andalso isCom (Sequence als) 
+	  | isCom (If (a1, e2, e3)) = isAtom a1
+	  | isCom (Call a) = isAtom a
+	  | isCom (Set (s, a)) = isAtom a
+	  | isCom (Record []) = true
+	  | isCom (Record ((s, a)::ps)) = isAtom a andalso isCom (Record ps) 
+	  | isCom _ = false
+
+	fun isExp (Let (e1, e2, e3)) = (case e1 of 
+										(Var s) => true
+										| _     => false) 
+	 | isExp e = isAtom e orelse isCom e  
 
 	fun tosHelper (tosF, []) = ""
 	  | tosHelper (tosF, (t::ts)) = (tosF t) ^ tosHelper (tosF, ts)  
 
-	fun ptos (Add) = "+"
-	  | ptos (Minus) = "-"
-	  | ptos (Times) = "*"
-	  | ptos (Equals) = "="
+	fun tos (Nat n) = Int.toString n
+	  | tos (True)  = "true"
+	  | tos (False) = "false"
+	  | tos (Var s) = s
+	  | tos (Lambda (als, e)) = "(' " ^ (tosHelper (tos, als)) ^ " " ^ (tos e) ^ ")"
+	  | tos (Pr (p, als)) = (P.tos p) ^ " (" ^ (tosHelper (tos, als)) ^ ")" 
+	  | tos (Sequence als) = "(" ^ (tosHelper (tos, als)) ^ ")"
+	  | tos (If (a, e1, e2)) = "(if " ^ (tos a) ^ " " ^ (tos e1) ^ " " ^ (tos e2) ^ ")"
+	  | tos (Call a) = "(call " ^ (tos a) ^ ")"
+	  | tos (Set (s, a)) = "(set! " ^ s ^ " " ^ (tos a) ^ ")"
+      | tos (Record ps) = "(" ^ (String.concatWith " " (map (fn (lab, a) => lab ^ " " ^ tos a) ps)) ^ ")"
+	  | tos (Let (a, e1, e2)) = "(let ((" ^ (tos a) ^ " " ^ (tos e1) ^ ")) " ^ (tos e2) ^ ")"
 
-	fun atos (Nat n) = Int.toString n
-	  | atos (True) = "true"
-	  | atos (False) = "false"
-	  | atos (Var s) = s
-	  | atos (Lambda (als, e)) "(' " ^ (tosHelper (atos, als)) ^ " " ^ (tos e) ^ ")"
-	  | atos (Prim (p, als)) = (ptos p) ^ " (" ^ (tosHelper (atos, als)) ^ ")" 
-
-	fun ctos (Sequence als) = "(" ^ (tosHelper (atos, als)) ^ ")"
-	  | ctos (If (a, e1, e2)) = "(if " ^ (atos a) ^ " " ^ (tos e1) ^ " " ^ (tos e2) ^ ")"
-	  | ctos (Call a) = "(call " ^ (atos a) ^ ")"
-	  | ctos (Set (s, a)) = "(set! " ^ s ^ " " ^ (atos a) ^ ")"
-      | ctos (Record ps) = "(" ^ (String.concatWith " " (map (fn (lab, a) => lab ^ " " ^ atos a) ps)) ^ ")"
-
-	fun tos (AExp a) = atos a
-	  | tos (CExp c) = ctos c
-	  | tos (Let ((a, e1), e2)) = "(let ((" ^ (atos a) ^ " " ^ (tos e1) ^ ")) " ^ (tos e2) ^ ")"
 end

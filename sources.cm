@@ -1,0 +1,23 @@
+Group
+  structure Address
+  structure Closure
+  structure Continuation
+  structure Environment
+  structure Expression
+  structure Prim
+  structure State
+  structure Store
+  structure Value
+
+is
+  $/basis.cm
+  $/smlnj-lib.cm
+  address.sml
+  closure.sml
+  continuation.sml
+  environment.sml
+  expression.sml
+  prim.sml
+  state.sml
+  store.sml
+  value.sml	
