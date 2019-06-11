@@ -8,4 +8,6 @@ structure State = struct
 	datatype state 
 		= State of C.exp * Env.environment * S.store * K.continuation
 
+	fun inject e = State (e, Env.empty, S.init, K.empty)
+
 end

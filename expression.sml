@@ -8,7 +8,7 @@ structure Expression = struct
 		| False
 		| Var of string
 		| Lambda of exp list * exp
-		| Pr of P.Prim * exp list
+		| Pr of P.prim * exp list
 		| Sequence of exp list
 		| If of exp * exp * exp
 		| Call of exp
@@ -40,7 +40,7 @@ structure Expression = struct
 	fun isExp (Let (e1, e2, e3)) = (case e1 of 
 										(Var s) => true
 										| _     => false) 
-	 | isExp e = isAtom e orelse isCom e  
+	  | isExp e = isAtom e orelse isCom e  
 
 	fun tosHelper (tosF, []) = ""
 	  | tosHelper (tosF, (t::ts)) = (tosF t) ^ tosHelper (tosF, ts)  

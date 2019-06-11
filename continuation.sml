@@ -1,14 +1,20 @@
 structure Continuation = struct
 
-	structure V = Value
 	structure Env = Environment
 	structure Exp = Expression
 	
 	datatype continuation 
-		= Letk of V.value * Env.environment * Exp.exp * continuation
+		= Letk of Exp.exp * Env.environment * Exp.exp * continuation
 		| Halt
 
-	fun tos (Letk (v, env, ex, c)) = "(let ([" ^ (V.tos v) ^ " " ^ (Exp.tos ex) ^ "]) " ^ (tos c) ^ ")" 
+	fun isCont (Halt) = true
+	  | isCont (Letk (v, env, ex, k)) = (case v of 
+	  										(Exp.Var s) => isCont k
+	  										| _ 		=> false)
+
+	val empty = Halt
+
+	fun tos (Letk (v, env, ex, k)) = "(let ([" ^ (Exp.tos v) ^ " " ^ (Exp.tos ex) ^ "]) " ^ (tos k) ^ ")" 
 	  | tos (Halt) = "halt" 
 
 end
